@@ -87,6 +87,18 @@ def ppo_update(policy_network, optimizer, old_log_probs, states, actions, return
             # 3. 计算 policy_loss，这是损失的策略部分。
             # 4. 计算 value_loss，这是预测值函数和实际回报之间的均方误差。
             ###
+            # Begin
+            # Compute ratio (new probability / old probability)
+            ratio = torch.exp(log_prob - old_log_prob_batch)
+
+            # Compute the clipped loss
+            clipped_ratio = torch.clamp(ratio, 1 - clip_param, 1 + clip_param)
+            policy_loss = -torch.min(ratio * advantage_batch, clipped_ratio * advantage_batch).mean()
+
+            # Compute value loss (mean squared error)
+            value_loss = 0.5 * (return_batch - value).pow(2).mean()
+
+            # Finished
 
             loss = policy_loss + 0.5 * value_loss
 
